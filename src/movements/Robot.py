@@ -67,7 +67,8 @@ class Robot():
         self.gyro_reset()
         self.steer_pair_l()
         while self.gy.value() > -200:
-            if self.gy.value() < -87:
+            print(self.gy.value())
+            if self.gy.value() < -80:
                 self.steer_pair_stop()
                 break
         self.forward(2)
@@ -78,6 +79,7 @@ class Robot():
         self.steer_pair_r()
         while self.gy.value() < 200:
             if self.gy.value() > 177:
+                print(self.gy.value())
                 self.steer_pair_stop()
                 break
         self.forward(2)
@@ -86,3 +88,15 @@ class Robot():
         """Method for driving the robot x seconds forward"""
         self.steer_pair.on_for_seconds(steering=0, speed=50, seconds=x)
         sleep(1)
+
+    def commands(self, str):
+        for i in str:
+            if i == 'l':
+                self.turn(Directions.left)
+            if i == 'r':
+                self.turn(Directions.right)
+            if i == 'u':
+                self.turn(Directions.up)
+            if i == 'd':
+                self.turn(Directions.down)
+            
