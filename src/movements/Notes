@@ -1,0 +1,15 @@
+\documentclass{article}
+
+\title{Notizen für LEGOlas}
+\author{Meeeeeeee <3}
+
+\begin{document}
+\maketitle
+Um nicht mehr blinde Längen zu fahren:\\
+    \begin{itemize}
+        \item Sensor immer im inneren (rechte Seite)
+        \item Zeitliche Vorgabe, ab wann man ca. eine Kreuzung erreicht hat
+        \item Erkennen einer Kreuzung dadurch, dass Offset schwarz wird
+        \item Fahren, bis wieder Offset erreicht ist, dann drehen   
+    \end{itemize}   
+\end{document}

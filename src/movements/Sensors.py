@@ -20,29 +20,39 @@ class Sensors():
         self.offset = self.cl.reflected_light_intensity  #Zero point, light reflected, when the ColorSensor detects half white and half black. Each time LEGOlas starts this method new, he calculates the Zeropoint new.
 
 
-    def pid(self, seconds):
+    def pid(self, seconds, side_to_follow, count): #side_to_follow is 1 or -1, shows if LEGOlas should follow the right side or the left side of the line (should drive in the inner field)
         """Method for Line Following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/PID_Controller_For_Lego_Mindstorms_Robots.html """
-        kp = 1 
-        ki = 0.05  
-        kd = 0.5
+        kp = 1 * side_to_follow
+        ki = 0.025 * side_to_follow
+        kd = 0.5 * side_to_follow
         integral = 0
         last_error = 0
         derivative = 0
-        for i in drange(0,seconds, 0.1): 
-            print("Sekunde:", i)
-            if(1.4 < i) and (2.0 >= i): #Seconden anpassen und gucken wie häufig man gerade aus fährt, damit ich die if methode länger machen 
-                self.steer_pair.on(steering = 0, speed = 50)
-                print("if") 
-                time.sleep(0.1)
+        compare = 0
+        critical_time = 0.020* count 
+        print("Count: ", count)
+        for i in drange(0,seconds, 0.08): 
+            if seconds - critical_time <= i: #Seconden anpassen und gucken wie häufig man gerade aus fährt, damit ich die if methode länger machen 
+            #    print("Kritischer Bereich")
+                while (self.cl.reflected_light_intensity <= self.offset-18):
+                    self.steer_pair.on(steering = 0, speed = 40)
+                    time.sleep(0.15)
+                    print("Schwarze Linie erreicht", i)
+                    self.steer_pair.off()
+                    compare += 1
+                    break
+            if compare > 0:
+                break
             else:
+                print("Offset: ", self.offset," Reflected Light: ",self.cl.reflected_light_intensity, "i: ", i)
                 error = self.cl.reflected_light_intensity - self.offset
                 integral = integral + error
                 derivative = error - last_error
                 Turn = kp * error + ki * integral + kd * derivative 
-                self.steer_pair.on(steering = Turn, speed = 50)
+                self.steer_pair.on(steering = Turn, speed = 40)
                 last_error = error
-                print("integral: %.2f, derivative: %.2f, Turn: %.2f", integral, derivative, Turn)
-                time.sleep(0.1)
+                #print("integral: %.2f, derivative: %.2f, Turn: %.2f", integral, derivative, Turn)
+                time.sleep(0.05)
 
         self.steer_pair.off()
 

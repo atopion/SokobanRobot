@@ -6,17 +6,19 @@ from Robot import Robot
 
 def main():
     args = sys.argv[1]
+    run(args)
+        
+def run (args):
     r = Robot()
     i = 0
     while i < len(args):
         print(args[i])
         c = args[i]
-        count = 10
+        count = 30
         i += 1
         while i < len(args) and args[i] == c:
-            count += 10 
+            count += 30
             i += 1
-        print('count %d:'% count)
         if c == 'l':
             r.turn(Directions.left, count)
         if c == 'r':
