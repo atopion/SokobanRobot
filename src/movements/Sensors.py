@@ -93,3 +93,5 @@ measurements = np.asarray([[1,0], [0,0], [0,1]])  # 3 observations
 kf = kf.em(measurements, n_iter=5)
 (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
 (smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)
+print("KF.Filter: ", kf.filter())
+print("KF.smooth: ", kf.smooth())
