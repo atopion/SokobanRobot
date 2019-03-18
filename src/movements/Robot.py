@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python.
 from ev3dev2.motor import Motor, OUTPUT_A, OUTPUT_D, LargeMotor, MoveSteering
 from ev3dev2.sensor.lego import GyroSensor
 from time import sleep
@@ -25,11 +25,11 @@ class Robot():
 
     def steer_pair_l(self):
         """Method to initalise the steering to the right side with speed set to 100"""
-        self.steer_pair.on(steering=-100, speed=35)
+        self.steer_pair.on(steering=-100, speed=30)
 
     def steer_pair_r(self):
         """Method to initalise the steering to the left side with speed set to 100"""
-        self.steer_pair.on(steering=100, speed=35)
+        self.steer_pair.on(steering=100, speed=30)
 
     def steer_pair_stop(self):
         self.steer_pair.off(True)
@@ -60,12 +60,17 @@ class Robot():
         lines_passed = 0
         self.gyro_reset()
         self.steer_pair_r()
-        while self.gy.value() < 95:
+        while self.gy.value() < 90:
             print("gy.value: " ,self.gy.value())
+            if self.zero_point < 20:
+                print("new")
+                sleep(0.1)
+                self.zero_point = ColorSensor().reflected_light_intensity
             if self.s.offset == self.zero_point: #Überlegen wie man reichweite von +/- 2 machen kann
                 print(self.s.offset, self.zero_point)
                 sleep(0.25) 
-                if lines_passed == 2:
+                if lines_passed == 3:
+                    sleep(0.05)
                     print("Ende vong 1 Drehen her")
                     self.steer_pair_stop()
                     break
@@ -79,10 +84,15 @@ class Robot():
         self.steer_pair_l()
         while self.gy.value() > -100:
             print("gy.value: " ,self.gy.value())
+            if self.zero_point < 20:
+                print("new")
+                sleep(0.1)
+                self.zero_point = ColorSensor().reflected_light_intensity
             if self.s.offset == self.zero_point: #Überlegen wie man reichweite von +/- 2 machen kann
                 print(self.s.offset, self.zero_point)
                 sleep(0.25) 
-                if lines_passed == 2:
+                if lines_passed == 3:
+                    sleep(0.05)
                     print("Ende vong 1 Drehen her")
                     self.steer_pair_stop()
                     break
@@ -95,10 +105,15 @@ class Robot():
         self.gyro_reset()
         self.steer_pair_r()
         while self.gy.value() < 200:
+            if self.zero_point < 20:
+                print("new")
+                sleep(0.1)
+                self.zero_point = ColorSensor().reflected_light_intensity
             if self.s.offset == self.zero_point: #Überlegen wie man reichweite von +/- 2 machen kann
                 sleep(0.25) 
                 if lines_passed == 3:
                     print("Ende vong 1 Drehen her")
+                    sleep(0.05)
                     self.steer_pair_stop()
                     break
                 lines_passed += 1
@@ -112,7 +127,7 @@ class Robot():
     def cm_to_sec(self, cm, speed):
         """Function to calculate how many seconds the roboter have to move with speed x to drive n cm"""
         sec = 0.0   
-        ref_sec = 2.95
+        ref_sec = 2.925
         ref_cm = 1
         ref_speed = 1
         sec = ref_sec * cm / speed

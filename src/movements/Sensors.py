@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+from pykalman~ import KalmanFilter
+import numpy as np
+from numpy import ma
+from scipy.stats import norm
 from ev3dev2.motor import Motor, OUTPUT_A, OUTPUT_D, LargeMotor, MoveSteering
 from ev3dev2.sensor.lego import ColorSensor, UltrasonicSensor   
 import time
@@ -20,6 +24,11 @@ class Sensors():
         self.offset = self.cl.reflected_light_intensity  #Zero point, light reflected, when the ColorSensor detects half white and half black. Each time LEGOlas starts this method new, he calculates the Zeropoint new.
 
 
+#############################################################################################
+#PID Folower and Stop signal								    #
+#############################################################################################
+
+
     def pid(self, seconds, side_to_follow, count): #side_to_follow is 1 or -1, shows if LEGOlas should follow the right side or the left side of the line (should drive in the inner field)
         """Method for Line Following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/PID_Controller_For_Lego_Mindstorms_Robots.html """
         kp = 1 * side_to_follow
@@ -29,15 +38,15 @@ class Sensors():
         last_error = 0
         derivative = 0
         compare = 0
-        critical_time = 0.020* count 
+        critical_time = 0.0255* count 
         print("Count: ", count)
         for i in drange(0,seconds, 0.08): 
-            if seconds - critical_time <= i: #Seconden anpassen und gucken wie häufig man gerade aus fährt, damit ich die if methode länger machen 
+            if seconds - critical_time <= i: #In this time LEGOlas has the chance to finde the Crossing and to stop -> still problematic
             #    print("Kritischer Bereich")
-                while (self.cl.reflected_light_intensity <= self.offset-18):
+            while (self.cl.reflected_light_intensity < 8):
                     self.steer_pair.on(steering = 0, speed = 40)
-                    time.sleep(0.15)
-                    print("Schwarze Linie erreicht", i)
+                    time.sleep(0.18)
+                    print("Schwarze Linie erreicht", self.cl.reflected_light_intensity, i)
                     self.steer_pair.off()
                     compare += 1
                     break
@@ -49,12 +58,20 @@ class Sensors():
                 integral = integral + error
                 derivative = error - last_error
                 Turn = kp * error + ki * integral + kd * derivative 
+                if Turn < -100 or Turn > 100:
+                    self.steer_pair.off()
+                    print("Turn zu hoch/ niedrig", Turn)
+                    break
                 self.steer_pair.on(steering = Turn, speed = 40)
                 last_error = error
                 #print("integral: %.2f, derivative: %.2f, Turn: %.2f", integral, derivative, Turn)
                 time.sleep(0.05)
 
         self.steer_pair.off()
+
+#####################################################################################
+#SonicSensor									    #
+#####################################################################################
 
     def box(self):
         """Method to slow down LEGOlas, whe he meets a box. Uses the UltrasonicSensor"""
@@ -65,3 +82,14 @@ class Sensors():
                 self.steer_pair.on(0, 25)
             if self.us.distance_centimeters > 30: #Is the Object out of the way, he gets faster
                 self.steer_pair.on(0, 50)   
+
+
+#####################################################################################
+#Kalmanfilter								            #	
+#####################################################################################
+
+kf = KalmanFilter(transition_matrices = [[1, 1], [0, 1]], observation_matrices = [[0.1, 0.5], [-0.3, 0.0]])
+measurements = np.asarray([[1,0], [0,0], [0,1]])  # 3 observations
+kf = kf.em(measurements, n_iter=5)
+(filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
+(smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)

@@ -1,0 +1,3 @@
+[submodule "src/movements/src/movements/pykalman~"]
+	path = src/movements/src/movements/pykalman~
+	url = https://github.com/atopion/SokobanRobot
