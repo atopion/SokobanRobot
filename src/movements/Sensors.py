@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from pykalman~ import KalmanFilter
+from pykalman import KalmanFilter
 import numpy as np
 from numpy import ma
 from scipy.stats import norm
@@ -43,13 +43,13 @@ class Sensors():
         for i in drange(0,seconds, 0.08): 
             if seconds - critical_time <= i: #In this time LEGOlas has the chance to finde the Crossing and to stop -> still problematic
             #    print("Kritischer Bereich")
-            while (self.cl.reflected_light_intensity < 8):
-                    self.steer_pair.on(steering = 0, speed = 40)
-                    time.sleep(0.18)
-                    print("Schwarze Linie erreicht", self.cl.reflected_light_intensity, i)
-                    self.steer_pair.off()
-                    compare += 1
-                    break
+                while (self.cl.reflected_light_intensity < 8):
+                        self.steer_pair.on(steering = 0, speed = 40)
+                        time.sleep(0.18)
+                        print("Schwarze Linie erreicht", self.cl.reflected_light_intensity, i)
+                        self.steer_pair.off()
+                        compare += 1
+                        break
             if compare > 0:
                 break
             else:
@@ -88,10 +88,11 @@ class Sensors():
 #Kalmanfilter								            #	
 #####################################################################################
 
-kf = KalmanFilter(transition_matrices = [[1, 1], [0, 1]], observation_matrices = [[0.1, 0.5], [-0.3, 0.0]])
-measurements = np.asarray([[1,0], [0,0], [0,1]])  # 3 observations
-kf = kf.em(measurements, n_iter=5)
-(filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
-(smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)
-print("KF.Filter: ", kf.filter())
-print("KF.smooth: ", kf.smooth())
+    def Kalmanfilter(self):
+        kf = KalmanFilter(40)
+        measurements = self.cl.reflected_light_intensity
+        #kf = kf.em(measurements, n_iter=5)
+        (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
+        (smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)
+        print("KF.Filter: ", kf.filter(measurements))
+        print("KF.smooth: ", kf.smooth(measurements))

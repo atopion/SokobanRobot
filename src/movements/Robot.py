@@ -37,11 +37,14 @@ class Robot():
     def turn(self, direction, count):
         """Method to calculate the right degree to turn. LEGOlas can move in the directions Up, Down, LEft, Right. Count tells LEGOlas how many squares he schould move forward in the same direction"""
         self.gyro_reset()
+        i = 30
         degrees_to_turn = self.direction - direction
         #print('degrees_to_turn:', degrees_to_turn)
         if degrees_to_turn == 0:
-            self.forward(self.cm_to_sec(count, 40), -1, count)
-            return 
+        while i <= count:
+            self.forward(self.cm_to_sec(30, 40), -1, count)
+            i += 30
+        return 
         switcher = {
                 -3: self.turn_left,  #reference to method turn_x (in this "switch" only references are allowed)
                 -2: self.turn_back,
@@ -58,6 +61,7 @@ class Robot():
     def turn_right(self, count):
         """Method to turn LEGOlas 90° to the right"""
         lines_passed = 0
+        i = 30
         self.gyro_reset()
         self.steer_pair_r()
         while self.gy.value() < 90:
@@ -75,11 +79,15 @@ class Robot():
                     self.steer_pair_stop()
                     break
                 lines_passed += 1
-        self.forward(self.cm_to_sec(count, 40), -1, count)
+        while i <= count:
+            self.forward(self.cm_to_sec(30, 40), -1, 30)
+            i += 30 
+
     
     def turn_left(self, count):
         """Method to turn LEGOlas 90° to the left"""
         lines_passed = 0
+        i = 30
         self.gyro_reset()
         self.steer_pair_l()
         while self.gy.value() > -100:
@@ -97,11 +105,14 @@ class Robot():
                     self.steer_pair_stop()
                     break
                 lines_passed += 1
-        self.forward(self.cm_to_sec(count, 40), 1, count)
+        while i <= count:
+            self.forward(self.cm_to_sec(30, 40), 1, 30)
+            i += 30
     
     def turn_back(self, count):
         """Method to turn LEGOlas 180° around"""
         lines_passed = 0
+        i = 30
         self.gyro_reset()
         self.steer_pair_r()
         while self.gy.value() < 200:
@@ -117,7 +128,9 @@ class Robot():
                     self.steer_pair_stop()
                     break
                 lines_passed += 1
-        self.forward(self.cm_to_sec(count, 40), 1, count)
+        while i <= count:
+            self.forward(self.cm_to_sec(30, 40), 1, 30)
+            i += 30
 
     def forward(self, x, y, count):
         """Method for driving the robot x seconds forward until LEGOlas reached a crossing"""
@@ -127,7 +140,7 @@ class Robot():
     def cm_to_sec(self, cm, speed):
         """Function to calculate how many seconds the roboter have to move with speed x to drive n cm"""
         sec = 0.0   
-        ref_sec = 2.925
+        ref_sec = 2.9
         ref_cm = 1
         ref_speed = 1
         sec = ref_sec * cm / speed
