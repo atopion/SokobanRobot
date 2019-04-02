@@ -32,8 +32,8 @@ class Sensors():
 
     def pid(self, seconds, side_to_follow, count, opposite): #side_to_follow is 1 or -1, shows if legolas should follow the right side or the left side of the line (should drive in the inner field)
         """method for line following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/pid_controller_for_lego_mindstorms_robots.html """
-        if self.offset < 25:
-            self.offset = 25
+        if self.offset < 30:
+            self.offset = 30
         kp = 1 * side_to_follow
         ki = 0.021 * side_to_follow
         kd = 0.25 * side_to_follow
@@ -42,10 +42,10 @@ class Sensors():
         last_error = 0
         derivative = 0
         compare = 0
-        critical_time = 0.0329* count
+        critical_time = 0.024* count
         print("count: ", count)
-        for i in drange(0,seconds, 0.070): 
-            if seconds - critical_time <=i and self.box() == True and opposite == 1:
+        for i in drange(0,seconds, 0.065): 
+            if 1.0 <=i and self.box() == True and opposite == 1:
                 self.cl.mode = 'COL-COLOR'
                 if  self.cl.color == 2 :
                     self.steer_pair.off()
@@ -54,14 +54,13 @@ class Sensors():
             self.cl.mode = 'COL-REFLECT'    
             if seconds - critical_time <= i: #in this time legolas has the chance to finde the crossing and to stop -> still problematic
             #    print("kritischer bereich")
-                while (self.cl.reflected_light_intensity < 10):
+                if (self.cl.reflected_light_intensity < 8):
                         self.steer_pair.on(steering = 0, speed = 40)
-                        time.sleep(0.165)
+                        time.sleep(0.175)
                         print("schwarze linie erreicht", self.cl.reflected_light_intensity, i)
                         self.steer_pair.off()
-                        compare += 1
                         return 0
-            print("offset: ", self.offset," reflected light: ",self.cl.reflected_light_intensity, "i: ", i)
+            #print("offset: ", self.offset," reflected light: ",self.cl.reflected_light_intensity, "i: ", i)
             error = self.cl.reflected_light_intensity - self.offset
             integral = integral + error
             derivative = error - last_error
