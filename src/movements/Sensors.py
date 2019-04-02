@@ -45,16 +45,16 @@ class Sensors():
         critical_time = 0.024* count
         print("count: ", count)
         for i in drange(0,seconds, 0.065): 
-            if 1.0 <=i and self.box() == True and opposite == 1:
+            while (self.box() == True and 1.10 < i and opposite == 1):
                 self.cl.mode = 'COL-COLOR'
                 if  self.cl.color == 2 :
                     self.steer_pair.off()
-                    print("Grüne Linie erreicht")
+                    print("Grüne Linie erreicht", self.cl.reflected_light_intensity, i)
                     return 1
-            self.cl.mode = 'COL-REFLECT'    
+                i += 0.065
             if seconds - critical_time <= i: #in this time legolas has the chance to finde the crossing and to stop -> still problematic
             #    print("kritischer bereich")
-                if (self.cl.reflected_light_intensity < 8):
+                if (self.cl.reflected_light_intensity < 5):
                         self.steer_pair.on(steering = 0, speed = 40)
                         time.sleep(0.175)
                         print("schwarze linie erreicht", self.cl.reflected_light_intensity, i)
@@ -79,7 +79,7 @@ class Sensors():
 
     def box(self):
         """Method to slow down LEGOlas, whe he meets a box. Uses the UltrasonicSensor"""
-        if self.us.distance_centimeters < 10: #LEGOlas keeps driving forward
+        if self.us.distance_centimeters < 25: #LEGOlas keeps driving forward
             return True
         return False
 
