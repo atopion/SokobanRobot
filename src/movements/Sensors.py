@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-from pykalman import KalmanFilter
-import numpy as np
-from numpy import ma
-from scipy.stats import norm
-from ev3dev2.motor import Motor, OUTPUT_A, OUTPUT_D, LargeMotor, MoveSteering
+# from pykalman import KalmanFilter
+# import numpy as np
+# from numpy import ma
+# from scipy.stats import norm
+from ev3dev2.motor import Motor, OUTPUT_A, OUTPUT_D, LargeMotor, MoveSteering, MoveTank
 from ev3dev2.sensor.lego import ColorSensor, UltrasonicSensor   
 import time
 
@@ -20,6 +20,7 @@ class Sensors():
         """init method declares all shortcuts for the sensors and declares the name for the steer_pair (see Robot.py)"""
         self.steer_pair = MoveSteering(OUTPUT_A, OUTPUT_D, motor_class = LargeMotor) # steer_pair moves the robot
         self.us = UltrasonicSensor()   #shortcut fpr the UltrasonicSensor (looks like a pair of eyes)    
+        self.tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
         self.cl = ColorSensor() #shortcut for the ColorSensor (points toward the ground)
         self.offset = self.cl.reflected_light_intensity  #Zero point, light reflected, when the ColorSensor detects half white and half black. Each time LEGOlas starts this method new, he calculates the Zeropoint new.
 
@@ -29,43 +30,38 @@ class Sensors():
 #############################################################################################
 
 
-    def pid(self, seconds, side_to_follow, count): #side_to_follow is 1 or -1, shows if LEGOlas should follow the right side or the left side of the line (should drive in the inner field)
-        """Method for Line Following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/PID_Controller_For_Lego_Mindstorms_Robots.html """
+    def pid(self, seconds, side_to_follow, count, opposite): #side_to_follow is 1 or -1, shows if legolas should follow the right side or the left side of the line (should drive in the inner field)
+        """method for line following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/pid_controller_for_lego_mindstorms_robots.html """
         kp = 1 * side_to_follow
-        ki = 0.025 * side_to_follow
-        kd = 0.5 * side_to_follow
+        ki = 0.0225 * side_to_follow
+        kd = 0.45 * side_to_follow
         integral = 0
+        Tp = 70
         last_error = 0
         derivative = 0
         compare = 0
-        critical_time = 0.0255* count 
-        print("Count: ", count)
-        for i in drange(0,seconds, 0.08): 
-            if seconds - critical_time <= i: #In this time LEGOlas has the chance to finde the Crossing and to stop -> still problematic
-            #    print("Kritischer Bereich")
-                while (self.cl.reflected_light_intensity < 8):
+        critical_time = 0.02755* count
+        print("count: ", count)
+        for i in drange(0,seconds, 0.075): 
+            if seconds - critical_time <= i: #in this time legolas has the chance to finde the crossing and to stop -> still problematic
+            #    print("kritischer bereich")
+                while (self.cl.reflected_light_intensity < 10):
                         self.steer_pair.on(steering = 0, speed = 40)
-                        time.sleep(0.18)
-                        print("Schwarze Linie erreicht", self.cl.reflected_light_intensity, i)
+                        time.sleep(0.165)
+                        print("schwarze linie erreicht", self.cl.reflected_light_intensity, i)
                         self.steer_pair.off()
                         compare += 1
                         break
             if compare > 0:
                 break
             else:
-                print("Offset: ", self.offset," Reflected Light: ",self.cl.reflected_light_intensity, "i: ", i)
+                print("offset: ", self.offset," reflected light: ",self.cl.reflected_light_intensity, "i: ", i)
                 error = self.cl.reflected_light_intensity - self.offset
                 integral = integral + error
                 derivative = error - last_error
-                Turn = kp * error + ki * integral + kd * derivative 
-                if Turn < -100 or Turn > 100:
-                    self.steer_pair.off()
-                    print("Turn zu hoch/ niedrig", Turn)
-                    break
-                self.steer_pair.on(steering = Turn, speed = 40)
-                last_error = error
-                #print("integral: %.2f, derivative: %.2f, Turn: %.2f", integral, derivative, Turn)
-                time.sleep(0.05)
+                turn = kp * error + ki * integral + kd * derivative 
+                self.steer_pair.on(steering = turn, speed = 40)
+                time.sleep(0.04)
 
         self.steer_pair.off()
 
@@ -75,24 +71,19 @@ class Sensors():
 
     def box(self):
         """Method to slow down LEGOlas, whe he meets a box. Uses the UltrasonicSensor"""
-        while self.us.distance_centimeters < 300: #LEGOlas jeeps driving forward
-            print(self.us.distance_centimeters)
-            self.steer_pair.on(0, 50) #Driving forward (see steering = 0) with speed 50
-            if self.us.distance_centimeters < 30: #When LEGOlas detecs an object he reduces his speed
-                self.steer_pair.on(0, 25)
-            if self.us.distance_centimeters > 30: #Is the Object out of the way, he gets faster
-                self.steer_pair.on(0, 50)   
-
+        if self.us.distance_centimeters < 10: #LEGOlas keeps driving forward
+            return True
+        return False
 
 #####################################################################################
 #Kalmanfilter								            #	
 #####################################################################################
 
-    def Kalmanfilter(self):
-        kf = KalmanFilter(40)
-        measurements = self.cl.reflected_light_intensity
-        #kf = kf.em(measurements, n_iter=5)
-        (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
-        (smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)
-        print("KF.Filter: ", kf.filter(measurements))
-        print("KF.smooth: ", kf.smooth(measurements))
+    # def Kalmanfilter(self):
+        # kf = KalmanFilter(40)
+        # measurements = self.cl.reflected_light_intensity
+        # #kf = kf.em(measurements, n_iter=5)
+        # (filtered_state_means, filtered_state_covariances) = kf.filter(measurements)
+        # (smoothed_state_means, smoothed_state_covariances) = kf.smooth(measurements)
+        # print("KF.Filter: ", kf.filter(measurements))
+        # print("KF.smooth: ", kf.smooth(measurements))

@@ -19,14 +19,39 @@ def run (args):
         while i < len(args) and args[i] == c:
             count += 30
             i += 1
+            
         if c == 'l':
-            r.turn(Directions.left, count)
+            if i+1 < len(args):
+                if args[i+1] == 'r':
+                    r.turn(Directions.left, count, 1)
+                else:
+                    r.turn(Directions.left, count, 0)
+            else:
+                r.turn(Directions.left, count, 0)
         if c == 'r':
-            r.turn(Directions.right, count)
+            if i+1 < len(args):
+                if args[i+1] == 'l':
+                    r.turn(Directions.right, count, 1)
+                else:
+                    r.turn(Directions.right, count,0)
+            else:
+                r.turn(Directions.right, count,0)
         if c == 'u':
-            r.turn(Directions.up, count)
+            if i+1 < len(args):
+                if args[i+1] == 'd':
+                    r.turn(Directions.up, count, 1)
+                else:
+                    r.turn(Directions.up, count, 0)
+            else:
+                r.turn(Directions.up, count, 0)
         if c == 'd':
-            r.turn(Directions.down, count)
+            if i+1 < len(args):
+                if args[i+1] == 'u':
+                    r.turn(Directions.down, count, 1)
+                else:
+                    r.turn(Directions.down, count, 0)
+            else:
+                r.turn(Directions.down, count, 0)
 
 if __name__ == "__main__":
     main()
