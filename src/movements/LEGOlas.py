@@ -15,10 +15,9 @@ def run (args):
         print(args[i])
         c = args[i]
         count = 30
-        i += 1
-        while i < len(args) and args[i] == c:
-            count += 30
-            i += 1
+        #while i < len(args) and args[i] == c:
+        #    count += 30
+        #    i += 1
             
         if c == 'l':
             if i+1 < len(args):
@@ -52,6 +51,7 @@ def run (args):
                     r.turn(Directions.down, count, 0)
             else:
                 r.turn(Directions.down, count, 0)
+        i += 1
 
 if __name__ == "__main__":
     main()

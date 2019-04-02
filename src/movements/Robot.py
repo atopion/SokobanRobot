@@ -18,10 +18,10 @@ class Robot():
         self.zero_point = ColorSensor().reflected_light_intensity
         self.s = Sensors()
         self.quit = 0
-        self.side_to_follow = 1
+        self.side_to_follow = -1
 
     def new_zero_point(self):
-        self.zero_point = 25
+        self.zero_point = 30
         print("Künstlicher Nullpunkt")
 
     def gyro_reset(self):
@@ -31,11 +31,11 @@ class Robot():
 
     def steer_pair_l(self):
         """Method to initalise the steering to the right side with speed set to 100"""
-        self.steer_pair.on(steering=-100, speed=25)
+        self.steer_pair.on(steering=-100, speed=23)
 
     def steer_pair_r(self):
         """Method to initalise the steering to the left side with speed set to 100"""
-        self.steer_pair.on(steering=100, speed=25)
+        self.steer_pair.on(steering=100, speed=23)
 
     def steer_pair_stop(self):
         self.steer_pair.off(True)
@@ -43,17 +43,26 @@ class Robot():
     def turn(self, direction, count, opposite): 
         """Method to calculate the right degree to turn. LEGOlas can move in the directions Up, Down, LEft, Right. Count tells LEGOlas how many squares he schould move forward in the same direction"""
         self.gyro_reset()
-        if self.zero_point < 25:
+        if self.zero_point < 30:
             self.new_zero_point()
         i = 30
         degrees_to_turn = self.direction - direction
         if degrees_to_turn == 0:
-            while i <= count:
-                print("Quit: ", self.quit,"opposite: ", opposite)
-                self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
-                self.side_to_follow = -1
-                i += 30
-            return 
+            if self.side_to_follow == 1:
+                while i <= count:
+                    print("Quit: ", self.quit,"opposite: ", opposite)
+                    self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
+                    self.side_to_follow = 1
+                    i += 30
+                return 
+
+            else:
+                while i <= count:
+                    print("Quit: ", self.quit,"opposite: ", opposite)
+                    self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
+                    self.side_to_follow = -1
+                    i += 30
+                return 
         switcher = {
                 -3: self.turn_left,  #reference to method turn_x (in this "switch" only references are allowed)
                 -2: self.turn_back,
@@ -74,7 +83,7 @@ class Robot():
         self.gyro_reset()
         self.steer_pair_r()
         while self.gy.value() < 90:
-            print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
+            #print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
             if ColorSensor().reflected_light_intensity <= 22 and self.gy.value() > 45: #Überlegen wie man reichweite von +/- 2 machen kann
                 print(self.s.offset, ColorSensor().reflected_light_intensity)
                 sleep(0.16)
@@ -94,7 +103,7 @@ class Robot():
         self.gyro_reset()
         self.steer_pair_l()
         while self.gy.value() > -90:
-            print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
+            #print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
             if ColorSensor().reflected_light_intensity <= 22 and self.gy.value() < -45: #Überlegen wie man reichweite von +/- 2 machen kann
                 print(self.s.offset, ColorSensor().reflected_light_intensity)
                 sleep(0.16) 
@@ -114,7 +123,7 @@ class Robot():
         if degrees_to_turn == -2:
             self.steer_pair_r()
             while self.gy.value() < 178:
-                print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
+           #     print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
                 if ColorSensor().reflected_light_intensity <= 22 and self.gy.value() > 140: #Überlegen wie man reichweite von +/- 2 machen kann
                     print(self.s.offset, ColorSensor().reflected_light_intensity)
                     sleep(0.14)
@@ -145,7 +154,7 @@ class Robot():
         else:
             self.steer_pair_l()
             while self.gy.value() > -178:
-                print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
+           #     print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity)
                 if ColorSensor().reflected_light_intensity <= 22 and self.gy.value() < -140: #Überlegen wie man reichweite von +/- 2 machen kann
                     print(self.s.offset, ColorSensor().reflected_light_intensity)
                     sleep(0.14)
