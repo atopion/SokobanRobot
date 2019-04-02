@@ -49,6 +49,7 @@ class Robot():
         degrees_to_turn = self.direction - direction
         if degrees_to_turn == 0:
             while i <= count:
+                print("Quit: ", self.quit,"opposite: ", opposite)
                 self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
                 self.side_to_follow = -1
                 i += 30
@@ -80,7 +81,7 @@ class Robot():
                 self.steer_pair_stop()
                 break
         while i <= count:
-            print("opposite: ", opposite)
+            print("Quit: ", self.quit,"opposite: ", opposite)
             self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
             self.side_to_follow = -1
             i += 30 
@@ -100,7 +101,7 @@ class Robot():
                 self.steer_pair_stop()
                 break   
         while i <= count:
-            print("opposite: ", opposite)
+            print("Quit: ", self.quit,"opposite: ", opposite)
             self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
             self.side_to_follow = 1
             i += 30
@@ -121,6 +122,7 @@ class Robot():
                     break
             if self.side_to_follow == -1:
                 while i <= count:
+                    print("Quit: ", self.quit)
                     if self.quit == 1:
                         self.quit = self.forward(self.cm_to_sec(20, 40), 1, 30, opposite)
                         self.side_to_follow = 1
@@ -131,6 +133,7 @@ class Robot():
                         i += 30
             else: 
                 while i <= count:
+                    print("Quit: ", self.quit)
                     if self.quit == 1:
                         self.quit = self.forward(self.cm_to_sec(20, 40), -1, 30, opposite)
                         self.side_to_follow = -1
@@ -150,6 +153,7 @@ class Robot():
                     break
             if self.side_to_follow == -1:
                 while i <= count:
+                    print("Quit: ", self.quit)
                     if self.quit == 1:
                         self.quit = self.forward(self.cm_to_sec(20, 40), 1, 30, opposite)
                         self.side_to_follow = 1
@@ -160,6 +164,7 @@ class Robot():
                         i += 30
             else: 
                 while i <= count:
+                    print("Quit: ", self.quit)
                     if self.quit == 1:
                         self.quit = self.forward(self.cm_to_sec(20, 40), -1, 30, opposite)
                         self.side_to_follow = -1
@@ -171,13 +176,14 @@ class Robot():
 
     def forward(self, x, y, count, opposite):
         """Method for driving the robot x seconds forward until LEGOlas reached a crossing"""
-        self.s.pid(x, y, 30, opposite)
+        self.quit = self.s.pid(x, y, 30, opposite)
         sleep(0.05)
+        return self.quit 
             
     def cm_to_sec(self, cm, speed):
         """Function to calculate how many seconds the roboter have to move with speed x to drive n cm"""
         sec = 0.0   
-        ref_sec = 2.9
+        ref_sec = 2.7
         ref_cm = 1
         ref_speed = 1
         sec = ref_sec * cm / speed

@@ -32,6 +32,8 @@ class Sensors():
 
     def pid(self, seconds, side_to_follow, count, opposite): #side_to_follow is 1 or -1, shows if legolas should follow the right side or the left side of the line (should drive in the inner field)
         """method for line following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/pid_controller_for_lego_mindstorms_robots.html """
+        if self.offset < 25:
+            self.offset = 25
         kp = 1 * side_to_follow
         ki = 0.021 * side_to_follow
         kd = 0.25 * side_to_follow
@@ -46,6 +48,8 @@ class Sensors():
             if seconds - critical_time <=i and self.box() == True and opposite == 1:
                 self.cl.mode = 'COL-COLOR'
                 if  self.cl.color == 2 :
+                    self.steer_pair.off()
+                    print("Grüne Linie erreicht")
                     return 1
             self.cl.mode = 'COL-REFLECT'    
             if seconds - critical_time <= i: #in this time legolas has the chance to finde the crossing and to stop -> still problematic
@@ -67,6 +71,8 @@ class Sensors():
 
         self.steer_pair.off()
         self.tank_drive.off()
+        return 0
+        
 
 #####################################################################################
 #SonicSensor									    #
