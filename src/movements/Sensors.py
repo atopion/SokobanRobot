@@ -56,7 +56,7 @@ class Sensors():
             #    print("kritischer bereich")
                 if (self.cl.reflected_light_intensity < 5):
                         self.steer_pair.on(steering = 0, speed = 40)
-                        time.sleep(0.175)
+                        time.sleep(0.16)
                         print("schwarze linie erreicht", self.cl.reflected_light_intensity, i)
                         self.steer_pair.off()
                         return 0
