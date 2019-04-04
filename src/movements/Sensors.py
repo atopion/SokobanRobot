@@ -34,15 +34,15 @@ class Sensors():
         """method for line following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/pid_controller_for_lego_mindstorms_robots.html """
         if self.offset < 30:
             self.offset = 30
-        kp = 1 * side_to_follow
-        ki = 0.021 * side_to_follow
-        kd = 0.25 * side_to_follow
+        kp = 0.6 * side_to_follow
+        ki = 0.02 * side_to_follow
+        kd = 0.9 * side_to_follow
+        tmp = 0
         integral = 0
-        Tp = 70
         last_error = 0
         derivative = 0
         compare = 0
-        critical_time = 0.024* count
+        critical_time = 0.0245* count
         print("count: ", count)
         for i in drange(0,seconds, 0.065): 
             while (self.box() == True and 1.10 < i and opposite == 1):
@@ -52,24 +52,22 @@ class Sensors():
                     print("Grüne Linie erreicht", self.cl.reflected_light_intensity, i)
                     return 1
                 i += 0.065
-            if seconds - critical_time <= i: #in this time legolas has the chance to finde the crossing and to stop -> still problematic
-            #    print("kritischer bereich")
-                if (self.cl.reflected_light_intensity < 5):
-                        self.steer_pair.on(steering = 0, speed = 40)
-                        time.sleep(0.16)
-                        print("schwarze linie erreicht", self.cl.reflected_light_intensity, i)
-                        self.steer_pair.off()
-                        return 0
-            #print("offset: ", self.offset," reflected light: ",self.cl.reflected_light_intensity, "i: ", i)
+            tmp = self.cl.reflected_light_intensity
+            if (tmp <= 13) and seconds - critical_time <= i:
+                    self.steer_pair.on(steering = 0, speed = 25)
+                    time.sleep(0.18)
+                    print("schwarze linie erreicht", tmp, i)
+                    self.steer_pair.off()
+                    return 0
+            print("offset: ", self.offset," reflected light: ",tmp, "i: ", i)
             error = self.cl.reflected_light_intensity - self.offset
             integral = integral + error
             derivative = error - last_error
             turn = kp * error + ki * integral + kd * derivative 
-            self.steer_pair.on(steering = turn, speed = 40)
+            self.steer_pair.on(steering = turn, speed = 27)
             time.sleep(0.035)
 
         self.steer_pair.off()
-        self.tank_drive.off()
         return 0
         
 
