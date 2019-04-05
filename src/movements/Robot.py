@@ -20,7 +20,8 @@ class Robot():
         self.quit = 0
         self.side_to_follow = -1
         self.tank_drive = MoveTank(OUTPUT_A, OUTPUT_D)
-        self.sleep = 0.43
+        self.sleep = 0.41
+        self.turn_right_side = 1
 
     def new_zero_point(self):
         self.zero_point = 30
@@ -45,25 +46,25 @@ class Robot():
     def turn(self, direction, count, opposite): 
         """Method to calculate the right degree to turn. LEGOlas can move in the directions Up, Down, LEft, Right. Count tells LEGOlas how many squares he schould move forward in the same direction"""
         self.gyro_reset()
-        if self.zero_point < 30:
+        if self.zero_point < 30 or self.zero_point > 45:
             self.new_zero_point()
-        i = 30
         degrees_to_turn = self.direction - direction
+        print("Degrees_to:turn: ", degrees_to_turn, "Right side: ", self.turn_right_side)
+        if degrees_to_turn == 0 and self.turn_right_side == -1:
+            degrees_to_turn = 2
+        degrees_to_turn *= self.turn_right_side
+        self.turn_right_side = 1
         if degrees_to_turn == 0:
             if self.side_to_follow == 1:
-                while i <= count:
-                    print("Quit: ", self.quit,"opposite: ", opposite)
-                    self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
-                    self.side_to_follow = 1
-                    i += 30
+                print("Quit: ", self.quit,"opposite: ", opposite)
+                self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
+                self.side_to_follow = 1
                 return 
 
             else:
-                while i <= count:
-                    print("Quit: ", self.quit,"opposite: ", opposite)
-                    self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
-                    self.side_to_follow = -1
-                    i += 30
+                print("Quit: ", self.quit,"opposite: ", opposite)
+                self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
+                self.side_to_follow = -1
                 return 
         switcher = {
                 -3: self.turn_left,  #reference to method turn_x (in this "switch" only references are allowed)
@@ -80,49 +81,42 @@ class Robot():
 
     def turn_right(self, count, degrees_to_turn, opposite):
         """Method to turn LEGOlas 90° to the right"""
-        lines_passed = 0
-        i = 30
         self.gyro_reset()
         self.steer_pair_r()
         while self.gy.value() < 90:
             print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity, "Position: ", Motor().position, "Speed: ", Motor().speed)
-            if ColorSensor().reflected_light_intensity <= 25 and self.gy.value() > 30: #Überlegen wie man reichweite von +/- 2 machen kann
+            if ColorSensor().reflected_light_intensity <= 25 and self.gy.value() > 44: #Nach rechts verhält sich der gy.sensor anders als nach link -> geht nach rechts größere Schritte 
                 print(self.s.offset, ColorSensor().reflected_light_intensity)
                 sleep(self.sleep)
                 self.steer_pair_stop()
                 break
-        while i <= count:
-            print("Quit: ", self.quit,"opposite: ", opposite)
-            self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
-            self.side_to_follow = -1
-            i += 30 
+        print("Quit: ", self.quit,"opposite: ", opposite)
+        self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
+        self.side_to_follow = -1
 
     
     def turn_left(self, count, degrees_to_turn, opposite):
         """Method to turn LEGOlas 90° to the left"""
-        lines_passed = 0
-        i = 30
         self.gyro_reset()
         self.steer_pair_l()
         while self.gy.value() > -90:
             print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity, "Position: ", Motor().position, "Speed: ", Motor().speed)
-            if ColorSensor().reflected_light_intensity <= 25 and self.gy.value() < -30: #Überlegen wie man reichweite von +/- 2 machen kann
+            if ColorSensor().reflected_light_intensity <= 25 and self.gy.value() < -44: #Überlegen wie man reichweite von +/- 2 machen kann
                 print(self.s.offset, ColorSensor().reflected_light_intensity)
                 sleep(self.sleep) 
                 self.steer_pair_stop()
                 break   
-        while i <= count:
-            print("Quit: ", self.quit,"opposite: ", opposite)
-            self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
-            self.side_to_follow = 1
-            i += 30
+        print("Quit: ", self.quit,"opposite: ", opposite)
+        self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
+        self.side_to_follow = 1
     
     def turn_back(self, count, degrees_to_turn, opposite):
         """Method to turn LEGOlas 180° around"""
-        lines_passed = 0
-        i = 30
         if self.quit == 1:
-           self.tank_drive.on_for_seconds(-20,-20,1) 
+           self.turn_right_side = -1
+           self.tank_drive.on_for_seconds(-20,-20,1.99)
+           self.quit = 0
+           return
         if self.side_to_follow == -1:
             self.gyro_reset()
             self.steer_pair_r()
@@ -136,7 +130,7 @@ class Robot():
                     
             self.gyro_reset()
             self.steer_pair_r()
-            while self.gy.value() < 110:
+            while self.gy.value() < 105:
                 print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity, "Position: ", Motor().position, "Speed: ", Motor().speed)
                 if ColorSensor().reflected_light_intensity < 18 and self.gy.value() > 94.5: #Überlegen wie man reichweite von +/- 2 machen kann
                     print(self.s.offset, ColorSensor().reflected_light_intensity)
@@ -144,20 +138,14 @@ class Robot():
                     self.steer_pair_stop()
                     break
                     
-            while i <= count:
-                print("Quit: ", self.quit)
-                if self.quit == 1:
-                    self.quit = self.forward(self.cm_to_sec(15, 40), 1, 30, opposite)
-                    self.side_to_follow = 1
-                    i += 30
-                else:
-                    self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
-                    self.side_to_follow = 1
-                    i += 30
+            print("Quit: ", self.quit)
+            if self.quit == 0:
+                self.quit = self.forward(self.cm_to_sec(30, 40), 1, 30, opposite)
+                self.side_to_follow = 1
         else:
             self.steer_pair_l()
             self.gyro_reset()
-            while self.gy.value() > -90:
+            while self.gy.value() > -80:
                 print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity, "Position: ", Motor().position, "Speed: ", Motor().speed)
                 if ColorSensor().reflected_light_intensity < 18 and self.gy.value() < -49: #Überlegen wie man reichweite von +/- 2 machen kann
                     print(self.s.offset, ColorSensor().reflected_light_intensity)
@@ -167,24 +155,17 @@ class Robot():
 
             self.gyro_reset()
             self.steer_pair_l()
-            while self.gy.value() > -110:
+            while self.gy.value() > -95: #Punkt bei -93 erreicht, nächsten Tage weiter Beobachten
                 print("gy.value: " ,self.gy.value(), "reflected_light_intensity: ", ColorSensor().reflected_light_intensity, "Position: ", Motor().position, "Speed: ", Motor().speed)
-                if ColorSensor().reflected_light_intensity < 18 and self.gy.value() < -94.5: #Überlegen wie man reichweite von +/- 2 machen kann
+                if ColorSensor().reflected_light_intensity < 18 and self.gy.value() < -75: #Überlegen wie man reichweite von +/- 2 machen kann
                     print(self.s.offset, ColorSensor().reflected_light_intensity)
                     sleep(0.01)
                     self.steer_pair_stop()
                     break   
 
-            while i <= count:
-                print("Quit: ", self.quit)
-                if self.quit == 1:
-                    self.quit = self.forward(self.cm_to_sec(15, 40), -1, 30, opposite)
-                    self.side_to_follow = -1
-                    i += 30
-                else:
-                    self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
-                    self.side_to_follow = -1
-                    i += 30
+            if self.quit == 0:
+                self.quit = self.forward(self.cm_to_sec(30, 40), -1, 30, opposite)
+                self.side_to_follow = -1
 
     def forward(self, x, y, count, opposite):
         """Method for driving the robot x seconds forward until LEGOlas reached a crossing"""
@@ -195,7 +176,7 @@ class Robot():
     def cm_to_sec(self, cm, speed):
         """Function to calculate how many seconds the roboter have to move with speed x to drive n cm"""
         sec = 0.0   
-        ref_sec = 2.7
+        ref_sec = 3
         ref_cm = 1
         ref_speed = 1
         sec = ref_sec * cm / speed
