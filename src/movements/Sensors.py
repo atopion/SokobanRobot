@@ -30,30 +30,36 @@ class Sensors():
 #############################################################################################
 
 
-    def pid(self, seconds, side_to_follow, count, opposite): #side_to_follow is 1 or -1, shows if legolas should follow the right side or the left side of the line (should drive in the inner field)
+    def pid(self, seconds, side_to_follow, count, opposite, back): #side_to_follow is 1 or -1, shows if legolas should follow the right side or the left side of the line (should drive in the inner field)
         """method for line following, for more explainations please take a look at following site: http://www.inpharmix.com/jps/pid_controller_for_lego_mindstorms_robots.html """
         if self.offset < 30 or self.offset > 45:
             self.offset = 30
-        kp = 0.51 * side_to_follow
-        ki = 0.011 * side_to_follow
-        kd = 0.9 * side_to_follow
+        kp = 1.3 * side_to_follow
+        ki = 0.095 * side_to_follow
+        kd = 0.75 * side_to_follow
+        Tp = 19.5
         tmp = 0
         integral = 0
         last_error = 0
         derivative = 0
-        compare = 0
-        critical_time = 0.03* count #Geschwindigkeit erniedrigkt also auch kritischer Bereich höher angesetzt
+        backwards = 0
+        critical_time = 0.039* count #Geschwindigkeit erniedrigkt also auch kritischer Bereich höher angesetzt
         print("count: ", count)
         for i in drange(0,seconds, 0.065): 
-            while (1.315 < i and opposite == 1):
+            if (1.45 < i and opposite == 1):
                 self.steer_pair.off()
                 print("Grüne Linie erreicht", self.cl.reflected_light_intensity, i)
                 return 1
-                i += 0.065
             tmp = self.cl.reflected_light_intensity
-            if (tmp < 14) and seconds - critical_time <= i:
+            if backwards == 1 and tmp < 8 and 1.44 < i:
+                self.steer_pair.on(0,25)
+                time.sleep(0.25)
+                print("tmp: ",tmp, "i: ",i)
+                self.steer_pair.off()
+                return 0
+            if (tmp < 10) and seconds - critical_time <= i and backwards == 0:
                     self.steer_pair.on(steering = 0, speed = 25)
-                    time.sleep(0.18)
+                    time.sleep(0.15)
                     print("schwarze linie erreicht", tmp, i)
                     self.steer_pair.off()
                     return 0
@@ -61,11 +67,19 @@ class Sensors():
             error = self.cl.reflected_light_intensity - self.offset
             integral = integral + error
             derivative = error - last_error
-            turn = kp * error + ki * integral + kd * derivative 
-            self.steer_pair.on(steering = turn, speed = 25)
+            turn = kp * error + ki * integral + kd * derivative
+            last_error = error
+            if back == 1:
+                power_a = (Tp - turn/100) * -1
+                power_d = (Tp + turn/100) * -1
+                backwards = 1
+                self.tank_drive.on(power_a, power_d)
+            else:
+                self.steer_pair.on(steering = turn, speed = 23)
             time.sleep(0.035)
 
         self.steer_pair.off()
+        self.tank_drive.off()
         return 0
         
 
